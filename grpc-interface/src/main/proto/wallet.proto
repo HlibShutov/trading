@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.trading.walletservice.grpc";
+option java_outer_classname = "WalletProto";
+
+package wallet;
+
+service WalletService {
+  rpc ReserveFunds(ReserveFundsRequest) returns (ReserveFundsResponse);
+}
+
+message ReserveFundsRequest {
+  int64 user_id = 1;
+  string asset = 2;
+  string amount = 3;
+}
+
+message ReserveFundsResponse {
+  bool success = 1;
+  string message = 2;
+}
