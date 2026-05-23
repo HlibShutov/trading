@@ -1,7 +1,6 @@
 version: '3.9'
 
 services:
-
   wallet-db:
     image: postgres:16
     container_name: wallet-db
@@ -23,5 +22,27 @@ services:
     ports:
       - "9091:9091"
 
+  order-db:
+    image: postgres:16
+    container_name: order-db
+    environment:
+      POSTGRES_DB: order
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - order-data:/var/lib/postgresql/data
+
+  order-service:
+    build:
+      context: ./order-service
+    container_name: order-service
+    depends_on:
+      - order-db
+    ports:
+      - "8080:8080"
+
 volumes:
   wallet-data:
+  order-data:
