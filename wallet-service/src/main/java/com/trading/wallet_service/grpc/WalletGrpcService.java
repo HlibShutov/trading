@@ -26,18 +26,18 @@ public class WalletGrpcService extends com.trading.walletservice.grpc.WalletServ
     ) {
         try {
             walletService.reserveFunds(request);
+            ReserveFundsResponse response = ReserveFundsResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Funds reserved")
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
         } catch (WalletRecordNotFound e) {
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         } catch (InsufficientAmount e) {
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
         }
 
-        ReserveFundsResponse response = ReserveFundsResponse.newBuilder()
-                .setSuccess(true)
-                .setMessage("Funds reserved")
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
     }
 }
