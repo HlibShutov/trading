@@ -1,8 +1,11 @@
 package com.trading.wallet_service.grpc;
 
+import com.trading.wallet_service.exception.InsufficientAmount;
+import com.trading.wallet_service.exception.WalletRecordNotFound;
 import com.trading.wallet_service.service.WalletService;
 import com.trading.walletservice.grpc.ReserveFundsRequest;
 import com.trading.walletservice.grpc.ReserveFundsResponse;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 
@@ -13,7 +16,7 @@ public class WalletGrpcService extends com.trading.walletservice.grpc.WalletServ
         this.walletService = walletService;
     }
 
-    private WalletService walletService;
+    private final WalletService walletService;
 
 
     @Override
@@ -21,8 +24,13 @@ public class WalletGrpcService extends com.trading.walletservice.grpc.WalletServ
             ReserveFundsRequest request,
             StreamObserver<ReserveFundsResponse> responseObserver
     ) {
-
-        walletService.reserveFunds(request);
+        try {
+            walletService.reserveFunds(request);
+        } catch (WalletRecordNotFound e) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+        } catch (InsufficientAmount e) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+        }
 
         ReserveFundsResponse response = ReserveFundsResponse.newBuilder()
                 .setSuccess(true)
