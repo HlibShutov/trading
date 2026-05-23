@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+
+  wallet-db:
+    image: postgres:16
+    container_name: wallet-db
+    environment:
+      POSTGRES_DB: wallet
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - wallet-data:/var/lib/postgresql/data
+
+  wallet-service:
+    build:
+      context: ./wallet-service
+    container_name: wallet-service
+    depends_on:
+      - wallet-db
+    ports:
+      - "9091:9091"
+
+volumes:
+  wallet-data:
