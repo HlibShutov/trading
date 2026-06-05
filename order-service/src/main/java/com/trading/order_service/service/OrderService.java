@@ -4,11 +4,11 @@ import com.trading.order_service.dto.orderRequestDTO;
 import com.trading.order_service.dto.orderResponseDTO;
 import com.trading.order_service.grpc.WalletExceptionMapper;
 import com.trading.order_service.model.Order;
+import com.trading.order_service.model.OrderSide;
 import com.trading.order_service.model.OrderStatus;
 import com.trading.order_service.repository.OrderRepository;
 import com.trading.walletservice.grpc.ReserveFundsRequest;
 import com.trading.walletservice.grpc.WalletServiceGrpc;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +37,20 @@ public class OrderService {
     }
 
     public orderResponseDTO createOrder(orderRequestDTO orderRequest) {
-        BigDecimal amount = orderRequest.quantity().multiply(orderRequest.price());
+        BigDecimal reserveAmount;
+        String reserveAsset;
+
+        if (orderRequest.side() == OrderSide.BUY) {
+            reserveAmount = orderRequest.quantity().multiply(orderRequest.price());
+            reserveAsset = orderRequest.quote();
+        } else {
+            reserveAmount = orderRequest.quantity();
+            reserveAsset = orderRequest.base();
+        }
         ReserveFundsRequest request = ReserveFundsRequest.newBuilder()
                 .setUserId(orderRequest.userId())
-                .setAmount(amount.toString())
-                .setAsset(orderRequest.quote())
+                .setAmount(reserveAmount.toString())
+                .setAsset(reserveAsset)
                 .build();
         try {
             walletServiceBlockingStub.reserveFunds(request);
@@ -61,6 +70,6 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        return new orderResponseDTO((long)0, order.getStatus());
+        return new orderResponseDTO(orderRequest.userId(), order.getStatus());
     }
 }
