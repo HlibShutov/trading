@@ -1,9 +1,7 @@
 package com.trading.matcher.service;
 
-import com.trading.matcher.model.Market;
-import com.trading.matcher.model.Order;
-import com.trading.matcher.model.OrderBook;
-import com.trading.matcher.model.OrderSide;
+import com.trading.matcher.model.*;
+import com.trading.matcher.producer.TradeEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,6 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class MatcherService {
     private final Map<Market, OrderBook> orderBooks = new ConcurrentHashMap<>();
+    private TradeEventPublisher tradeEventPublisher;
+
+    public MatcherService(TradeEventPublisher tradeEventPublisher) {
+        this.tradeEventPublisher = tradeEventPublisher;
+    }
 
     public void placeOrder(Order order) {
         Market market = new Market(order.getBaseAsset(), order.getQuoteAsset());
@@ -40,7 +43,7 @@ public class MatcherService {
             Order sell = orderBook.getSellQueue().peek();
             if (sell == null
                 || order.getPrice().compareTo(sell.getPrice()) < 0
-                || sell.getUserId().equals(order.getUserId())
+//                || sell.getUserId().equals(order.getUserId())
             ) {
                 break;
             }
@@ -51,18 +54,20 @@ public class MatcherService {
 
             // send kafka event
             System.out.println("buy trade executed " + tradedQuantity + "buy id: " + order.getOrderId() + "sell order id: " + sell.getOrderId());
+            sendEvent(order, sell, tradedQuantity, sell.getPrice());
 
             if (sell.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
                 orderBook.getSellQueue().poll();
             }
         }
     }
+
     private void matchSell(OrderBook orderBook, Order order) {
         while (order.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0 && !orderBook.getBuyQueue().isEmpty()) {
             Order buy = orderBook.getBuyQueue().peek();
             if (buy == null
                     || buy.getPrice().compareTo(order.getPrice()) < 0
-                    || buy.getUserId().equals(order.getUserId())
+//                    || buy.getUserId().equals(order.getUserId())
             ) {
                 break;
             }
@@ -73,10 +78,24 @@ public class MatcherService {
 
             // send kafka event
             System.out.println("sell trade executed " + tradedQuantity + "sell id: " + order.getOrderId() + "buy order id: " + buy.getOrderId());
+            sendEvent(buy, order, tradedQuantity, buy.getPrice());
 
             if (buy.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
                 orderBook.getBuyQueue().poll();
             }
         }
+    }
+
+    private void sendEvent(Order buy, Order sell, BigDecimal quantity, BigDecimal price) {
+        tradeEventPublisher.publish(
+                new TradeExecutedEvent(
+                        buy.getOrderId(),
+                        sell.getOrderId(),
+                        buy.getBaseAsset(),
+                        buy.getQuoteAsset(),
+                        quantity.toString(),
+                        price.toString()
+                )
+        );
     }
 }
