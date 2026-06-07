@@ -38,7 +38,10 @@ public class MatcherService {
     private void matchBuy(OrderBook orderBook, Order order) {
         while (order.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0 && !orderBook.getSellQueue().isEmpty()) {
             Order sell = orderBook.getSellQueue().peek();
-            if (sell == null || order.getPrice().compareTo(sell.getPrice()) < 0) {
+            if (sell == null
+                || order.getPrice().compareTo(sell.getPrice()) < 0
+                || sell.getUserId().equals(order.getUserId())
+            ) {
                 break;
             }
             BigDecimal tradedQuantity = order.getRemainingQuantity().min(sell.getRemainingQuantity());
@@ -57,7 +60,10 @@ public class MatcherService {
     private void matchSell(OrderBook orderBook, Order order) {
         while (order.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0 && !orderBook.getBuyQueue().isEmpty()) {
             Order buy = orderBook.getBuyQueue().peek();
-            if (buy == null || buy.getPrice().compareTo(order.getPrice()) < 0) {
+            if (buy == null
+                    || buy.getPrice().compareTo(order.getPrice()) < 0
+                    || buy.getUserId().equals(order.getUserId())
+            ) {
                 break;
             }
             BigDecimal tradedQuantity = order.getRemainingQuantity().min(buy.getRemainingQuantity());
