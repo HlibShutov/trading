@@ -43,6 +43,13 @@ services:
     ports:
       - "8080:8080"
 
+  matcher-service:
+    build:
+      context: ./matcher-service
+    container_name: matcher-service
+    ports:
+      - "9092:9091"
+
 volumes:
   wallet-data:
   order-data:
