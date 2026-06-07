@@ -13,11 +13,6 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @GetMapping("/order")
-    public String getOrder(@RequestParam long userId) {
-        return orderService.getOrder(userId);
-    }
-
     @PostMapping("/order")
     public orderResponseDTO createOrder(@RequestBody orderRequestDTO orderRequest) {
         return orderService.createOrder(orderRequest);

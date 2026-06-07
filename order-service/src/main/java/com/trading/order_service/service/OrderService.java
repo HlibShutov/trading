@@ -1,5 +1,7 @@
 package com.trading.order_service.service;
 
+import com.trading.matcher.grpc.MatcherServiceGrpc;
+import com.trading.matcher.grpc.PlaceOrderRequest;
 import com.trading.order_service.dto.orderRequestDTO;
 import com.trading.order_service.dto.orderResponseDTO;
 import com.trading.order_service.grpc.WalletExceptionMapper;
@@ -20,21 +22,14 @@ import java.math.BigDecimal;
 public class OrderService {
     @GrpcClient("wallet-service")
     private WalletServiceGrpc.WalletServiceBlockingStub walletServiceBlockingStub;
+    @GrpcClient("matcher-service")
+    private MatcherServiceGrpc.MatcherServiceBlockingStub matcherServiceBlockingStub;
 
     public OrderService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 
     private final OrderRepository orderRepository;
-
-    public String getOrder(long userId) {
-        ReserveFundsRequest request = ReserveFundsRequest.newBuilder()
-                .setUserId(userId)
-                .setAmount("100.0")
-                .setAsset("BTC")
-                .build();
-        return walletServiceBlockingStub.reserveFunds(request).getMessage();
-    }
 
     public orderResponseDTO createOrder(orderRequestDTO orderRequest) {
         BigDecimal reserveAmount;
@@ -68,8 +63,28 @@ public class OrderService {
                 orderRequest.quote()
         );
 
+
         orderRepository.save(order);
+
+        PlaceOrderRequest placeOrderRequest = PlaceOrderRequest.newBuilder()
+                .setOrderId(order.getId())
+                .setUserId(order.getUserId())
+                .setSide(fromDomain(order.getSide()))
+                .setBase(order.getBaseAsset())
+                .setQuote(order.getQuoteAsset())
+                .setQuantity(order.getQuantity().toString())
+                .setPrice(order.getPrice().toString())
+                .build();
+        matcherServiceBlockingStub.placeOrder(placeOrderRequest);
 
         return new orderResponseDTO(orderRequest.userId(), order.getStatus());
     }
+
+    private com.trading.matcher.grpc.OrderSide fromDomain(OrderSide orderSide) {
+        return switch (orderSide) {
+            case BUY -> com.trading.matcher.grpc.OrderSide.BUY;
+            case SELL -> com.trading.matcher.grpc.OrderSide.SELL;
+        };
+    }
+
 }
