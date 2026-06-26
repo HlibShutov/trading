@@ -8,10 +8,12 @@ import com.trading.order_service.grpc.WalletExceptionMapper;
 import com.trading.order_service.model.Order;
 import com.trading.order_service.model.OrderSide;
 import com.trading.order_service.model.OrderStatus;
+import com.trading.order_service.model.TradeExecutedEvent;
 import com.trading.order_service.repository.OrderRepository;
 import com.trading.walletservice.grpc.ReserveFundsRequest;
 import com.trading.walletservice.grpc.WalletServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -87,4 +89,20 @@ public class OrderService {
         };
     }
 
-}
+    @Transactional
+    public void processTrade(TradeExecutedEvent trade) {
+        updateOrder(trade.buyOrderId(), new BigDecimal(trade.quantity()));
+        updateOrder(trade.sellOrderId(), new BigDecimal(trade.quantity()));
+    }
+
+    private void updateOrder(Long orderId, BigDecimal quantity) {
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        order.setFilledQuantity(order.getFilledQuantity().add(quantity));
+        if (order.getFilledQuantity().compareTo(order.getQuantity()) == 0) {
+            order.setStatus(OrderStatus.FILLED);
+        } else {
+            order.setStatus(OrderStatus.PARTIALLY_FILLED);
+        }
+        orderRepository.save(order);
+    }
+kk}

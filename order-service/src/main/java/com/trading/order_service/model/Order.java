@@ -30,6 +30,9 @@ public class Order {
     private BigDecimal quantity;
 
     @Column(nullable = false, precision = 19, scale = 8)
+    private BigDecimal filledQuantity = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal price;
 
     @Column(nullable = false)
