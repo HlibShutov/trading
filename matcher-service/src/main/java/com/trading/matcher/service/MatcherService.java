@@ -91,6 +91,8 @@ public class MatcherService {
                 new TradeExecutedEvent(
                         buy.getOrderId(),
                         sell.getOrderId(),
+                        buy.getUserId(),
+                        sell.getUserId(),
                         buy.getBaseAsset(),
                         buy.getQuoteAsset(),
                         quantity.toString(),

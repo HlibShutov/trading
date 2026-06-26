@@ -1,4 +1,4 @@
-package com.trading.matcher.model;
+package com.trading.wallet_service.model;
 
 public record TradeExecutedEvent(
         Long buyOrderId,

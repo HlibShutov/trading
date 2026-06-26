@@ -17,6 +17,7 @@ services:
     container_name: wallet-service
     depends_on:
       - wallet-db
+      - kafka
     ports:
       - "9091:9091"
 
