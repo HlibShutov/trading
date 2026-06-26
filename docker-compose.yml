@@ -38,6 +38,7 @@ services:
     container_name: order-service
     depends_on:
       - order-db
+      - matcher-service
       - kafka
     ports:
       - "8080:8080"
