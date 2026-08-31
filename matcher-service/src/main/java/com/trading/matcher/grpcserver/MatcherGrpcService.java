@@ -1,8 +1,6 @@
 package com.trading.matcher.grpcserver;
 
-import com.trading.matcher.grpc.MatcherServiceGrpc;
-import com.trading.matcher.grpc.PlaceOrderRequest;
-import com.trading.matcher.grpc.PlaceOrderResponse;
+import com.trading.matcher.grpc.*;
 import com.trading.matcher.model.Order;
 import com.trading.matcher.model.OrderSide;
 import com.trading.matcher.service.MatcherService;
@@ -17,6 +15,22 @@ public class MatcherGrpcService extends MatcherServiceGrpc.MatcherServiceImplBas
 
     public MatcherGrpcService(MatcherService matcherService) {
         this.matcherService = matcherService;
+    }
+
+    @Override
+    public void reset(
+            ResetRequest request,
+            StreamObserver<ResetResponse> responseObserver) {
+
+        matcherService.reset();
+
+        responseObserver.onNext(
+                ResetResponse.newBuilder()
+                        .setSuccess(true)
+                        .build()
+        );
+
+        responseObserver.onCompleted();
     }
 
     @Override

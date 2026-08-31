@@ -8,6 +8,7 @@ package matcher;
 
 service MatcherService {
   rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+  rpc Reset(ResetRequest) returns (ResetResponse);
 }
 
 enum OrderSide {
@@ -27,4 +28,10 @@ message PlaceOrderRequest {
 
 message PlaceOrderResponse {
   bool accepted = 1;
+}
+
+message ResetRequest {}
+
+message ResetResponse {
+  bool success = 1;
 }
