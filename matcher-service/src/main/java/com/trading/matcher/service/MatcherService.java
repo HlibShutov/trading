@@ -17,6 +17,9 @@ public class MatcherService {
         this.tradeEventPublisher = tradeEventPublisher;
     }
 
+    public void reset() {
+        orderBooks.clear();
+    }
     public void placeOrder(Order order) {
         Market market = new Market(order.getBaseAsset(), order.getQuoteAsset());
         OrderBook orderBook = orderBooks.computeIfAbsent(market, market1 -> new OrderBook());
@@ -54,7 +57,7 @@ public class MatcherService {
 
             // send kafka event
             System.out.println("buy trade executed " + tradedQuantity + "buy id: " + order.getOrderId() + "sell order id: " + sell.getOrderId());
-            sendEvent(order, sell, tradedQuantity, sell.getPrice());
+//            sendEvent(order, sell, tradedQuantity, sell.getPrice());
 
             if (sell.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
                 orderBook.getSellQueue().poll();
@@ -78,7 +81,7 @@ public class MatcherService {
 
             // send kafka event
             System.out.println("sell trade executed " + tradedQuantity + "sell id: " + order.getOrderId() + "buy order id: " + buy.getOrderId());
-            sendEvent(buy, order, tradedQuantity, buy.getPrice());
+//            sendEvent(buy, order, tradedQuantity, buy.getPrice());
 
             if (buy.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
                 orderBook.getBuyQueue().poll();
