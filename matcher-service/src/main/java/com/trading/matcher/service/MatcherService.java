@@ -57,7 +57,7 @@ public class MatcherService {
 
             // send kafka event
             System.out.println("buy trade executed " + tradedQuantity + "buy id: " + order.getOrderId() + "sell order id: " + sell.getOrderId());
-//            sendEvent(order, sell, tradedQuantity, sell.getPrice());
+           sendEvent(order, sell, tradedQuantity, sell.getPrice()); // comment when performing performance testing
 
             if (sell.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
                 orderBook.getSellQueue().poll();
@@ -81,7 +81,7 @@ public class MatcherService {
 
             // send kafka event
             System.out.println("sell trade executed " + tradedQuantity + "sell id: " + order.getOrderId() + "buy order id: " + buy.getOrderId());
-//            sendEvent(buy, order, tradedQuantity, buy.getPrice());
+            sendEvent(buy, order, tradedQuantity, buy.getPrice()); // comment when performing performance testing
 
             if (buy.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
                 orderBook.getBuyQueue().poll();
